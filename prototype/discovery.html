@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>233乐园 - 发现</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tdesign-mobile-vue/dist/tdesign.min.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow-x: hidden;
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: white;
+        padding: 12px 16px 8px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      .tab-active {
+        color: #000;
+        font-weight: 600;
+        position: relative;
+      }
+
+      .tab-active::after {
+        content: "";
+        position: absolute;
+        bottom: -6px;
+        left: 25%;
+        width: 50%;
+        height: 3px;
+        background-color: #ff4c3b;
+        border-radius: 1.5px;
+      }
+
+      .feed-columns {
+        display: flex;
+        width: 100%;
+        padding: 8px 4px;
+        box-sizing: border-box;
+      }
+
+      .feed-column-left,
+      .feed-column-right {
+        width: 50%;
+        padding: 0 4px;
+        box-sizing: border-box;
+      }
+
+      .feed-item {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+        transform-origin: center;
+        height: auto;
+        contain: content;
+        opacity: 0;
+        animation: fadeIn 0.5s ease forwards;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .feed-item:active {
+        transform: scale(0.98);
+      }
+
+      /* Feed image with placeholder and loader */
+      .feed-image {
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* 移除固定的纵横比，让图片保持原始比例 */
+      .feed-item:nth-child(odd) .feed-image {
+        aspect-ratio: 3/4;
+      }
+
+      .feed-item:nth-child(even) .feed-image {
+        aspect-ratio: 1/1;
+      }
+
+      .feed-item:nth-child(3n) .feed-image {
+        aspect-ratio: 4/3;
+      }
+
+      .feed-image::before {
+        content: "";
+        display: block;
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid #ddd;
+        border-top-color: #999;
+        animation: spin 1s linear infinite;
+        z-index: 0;
+      }
+
+      .feed-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: relative;
+        z-index: 1;
+      }
+
+      .video-indicator {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      .feed-content {
+        padding: 8px;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+      }
+
+      .user-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .like-count {
+        display: flex;
+        align-items: center;
+        color: #999;
+        font-size: 12px;
+      }
+
+      /* Pull to refresh & infinite scroll */
+      .refresh-container {
+        display: flex;
+        justify-content: center;
+        padding: 12px 0;
+        color: #666;
+        font-size: 12px;
+      }
+
+      .loading-container {
+        display: flex;
+        justify-content: center;
+        padding: 16px 0;
+        color: #666;
+      }
+
+      .loading-spinner {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Target left and right columns for waterfall layout */
+      .feed-column-left .feed-item:nth-child(odd) {
+        margin-bottom: 16px;
+      }
+
+      .feed-column-right .feed-item:nth-child(even) {
+        margin-bottom: 16px;
+      }
+
+      /* Bottom navigation bar */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: white;
+        display: flex;
+        justify-content: space-around;
+        padding: 8px 0 20px;
+        border-top: 1px solid #eee;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 12px;
+        color: #666;
+      }
+
+      .nav-item.active {
+        color: #ff4c3b;
+      }
+
+      .nav-icon {
+        font-size: 24px;
+        margin-bottom: 2px;
+      }
+
+      /* Create post button */
+      .create-post {
+        position: fixed;
+        bottom: 80px;
+        right: 16px;
+        width: 48px;
+        height: 48px;
+        background-color: #ff4c3b;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 2px 8px rgba(255, 76, 59, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header -->
+      <div class="app-header">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center space-x-6">
+            <div class="tab-active text-base">发现</div>
+            <div class="text-gray-600 text-base">游戏圈</div>
+            <div class="text-gray-600 text-base flex items-center">
+              <span class="mr-1">搜词器</span>
+              <span
+                class="inline-block w-4 h-4 bg-pink-100 rounded-full"
+              ></span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3">
+            <i class="ri-search-line text-xl"></i>
+            <i class="ri-message-3-line text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content - Pull to refresh area -->
+      <div class="refresh-container hidden" id="refresh-indicator">
+        <div class="flex items-center">
+          <i class="ri-refresh-line mr-1 loading-spinner"></i>
+          <span>下拉刷新...</span>
+        </div>
+      </div>
+
+      <!-- Feed content -->
+      <div class="feed-columns">
+        <!-- Left column -->
+        <div class="feed-column-left">
+          <div id="left-column">
+            <!-- Content will be inserted here dynamically -->
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="feed-column-right">
+          <div id="right-column">
+            <!-- Content will be inserted here dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading more indicator -->
+      <div class="loading-container hidden" id="loading-indicator">
+        <div class="flex items-center">
+          <i class="ri-loader-2-line mr-1 loading-spinner"></i>
+          <span>加载更多...</span>
+        </div>
+      </div>
+
+      <!-- Create post button -->
+      <div class="create-post">
+        <i class="ri-add-line text-2xl"></i>
+      </div>
+
+      <!-- Bottom navigation -->
+      <div class="bottom-nav">
+        <div class="nav-item active">
+          <i class="nav-icon ri-home-5-line"></i>
+          <span>首页</span>
+        </div>
+        <div class="nav-item">
+          <i class="nav-icon ri-planet-line"></i>
+          <span>社区</span>
+        </div>
+        <div class="nav-item">
+          <i class="nav-icon ri-video-add-line"></i>
+          <span>创作</span>
+        </div>
+        <div class="nav-item">
+          <i class="nav-icon ri-gamepad-line"></i>
+          <span>找游戏</span>
+        </div>
+        <div class="nav-item">
+          <i class="nav-icon ri-user-3-line"></i>
+          <span>我的</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Mock data for different URL parameters
+      const mockDataTypes = {
+        default: [
+          {
+            id: 1,
+            title: "【版本前瞻】手游新版本预告——重爪新模型，部分恐龙新",
+            image: "https://picsum.photos/400/300?random=1",
+            isVideo: false,
+            category: "恐龙岛（诺克之岛）",
+            user: {
+              name: "泡夫云",
+              avatar: "https://i.pravatar.cc/150?img=1",
+            },
+            likes: 10,
+          },
+          {
+            id: 2,
+            title: "【·若梦﹪🌸☕】落在捕梦网里的小家✧˚ ༘ ⋆｡˚🍓˖°#申请精",
+            image: "https://picsum.photos/400/500?random=2",
+            isVideo: false,
+            category: "来加小镇日常生活",
+            user: {
+              name: "小鱼蕾伊",
+              avatar: "https://i.pravatar.cc/150?img=2",
+            },
+            likes: 79,
+          },
+          {
+            id: 3,
+            title: "【推荐地图—醉花酒肆】第三期",
+            image: "https://picsum.photos/400/250?random=3",
+            isVideo: false,
+            category: "达你世界",
+            user: {
+              name: "我是你的亲爱",
+              avatar: "https://i.pravatar.cc/150?img=3",
+            },
+            likes: 9,
+          },
+          {
+            id: 4,
+            title: "梅丽莎连招小技巧！用知识害死再上一层楼",
+            image: "https://picsum.photos/400/280?random=4",
+            isVideo: true,
+            category: "决胜荣誉《召唤师下载》",
+            user: {
+              name: "冷枫蔷薇",
+              avatar: "https://i.pravatar.cc/150?img=4",
+            },
+            likes: 23,
+          },
+          {
+            id: 5,
+            title: "三角洲行动: 全面战场趣味性升级，夺旗，攻防合集，来玩",
+            image: "https://picsum.photos/400/320?random=5",
+            isVideo: true,
+            category: "三角洲行动",
+            user: {
+              name: "能猫游戏攻略",
+              avatar: "https://i.pravatar.cc/150?img=5",
+            },
+            likes: 644,
+          },
+          {
+            id: 6,
+            title: "不挑光线，只重自己看觉的",
+            image: "https://picsum.photos/400/260?random=6",
+            isVideo: false,
+            category: "",
+            user: {
+              name: "阿辞",
+              avatar: "https://i.pravatar.cc/150?img=6",
+            },
+            likes: 38,
+          },
+          {
+            id: 7,
+            title: "关注我，随机抽人操礼！",
+            image: "https://picsum.photos/400/480?random=7",
+            isVideo: false,
+            category: "",
+            user: {
+              name: "青空千绪",
+              avatar: "https://i.pravatar.cc/150?img=7",
+            },
+            likes: 51,
+          },
+          {
+            id: 8,
+            title: "探险爱好者的天堂：古墓探险实景体验",
+            image: "https://picsum.photos/400/420?random=8",
+            isVideo: true,
+            category: "冒险旅行家",
+            user: {
+              name: "大橘无情",
+              avatar: "https://i.pravatar.cc/150?img=8",
+            },
+            likes: 245,
+          },
+        ],
+        featured: [
+          {
+            id: 9,
+            title: "【精选】新年特辑：跨年烟花大赏",
+            image: "https://picsum.photos/400/350?random=9",
+            isVideo: true,
+            category: "节日庆典",
+            user: {
+              name: "烟火师傅",
+              avatar: "https://i.pravatar.cc/150?img=9",
+            },
+            likes: 1289,
+          },
+          {
+            id: 10,
+            title: "【精选】宝藏游戏推荐：这些独立游戏值得一试",
+            image: "https://picsum.photos/400/250?random=10",
+            isVideo: false,
+            category: "游戏推荐",
+            user: {
+              name: "游戏评测官",
+              avatar: "https://i.pravatar.cc/150?img=10",
+            },
+            likes: 952,
+          },
+          {
+            id: 11,
+            title: "【精选】我的动物花园：稀有宠物集锦",
+            image: "https://picsum.photos/400/460?random=11",
+            isVideo: false,
+            category: "宠物天地",
+            user: {
+              name: "花园守护者",
+              avatar: "https://i.pravatar.cc/150?img=11",
+            },
+            likes: 843,
+          },
+          {
+            id: 12,
+            title: "【精选】美食探店指南：城市里的隐藏美食",
+            image: "https://picsum.photos/400/280?random=12",
+            isVideo: true,
+            category: "美食探店",
+            user: {
+              name: "吃货日记",
+              avatar: "https://i.pravatar.cc/150?img=12",
+            },
+            likes: 726,
+          },
+          {
+            id: 13,
+            title: "【精选】艺术家的工作室：创作过程揭秘",
+            image: "https://picsum.photos/400/380?random=13",
+            isVideo: true,
+            category: "艺术创作",
+            user: {
+              name: "创意工坊",
+              avatar: "https://i.pravatar.cc/150?img=13",
+            },
+            likes: 615,
+          },
+          {
+            id: 14,
+            title: "【精选】我的露营装备大公开",
+            image: "https://picsum.photos/400/320?random=14",
+            isVideo: false,
+            category: "户外探险",
+            user: {
+              name: "野外生存者",
+              avatar: "https://i.pravatar.cc/150?img=14",
+            },
+            likes: 588,
+          },
+        ],
+        games: [
+          {
+            id: 15,
+            title: "《星际漫游》宇宙探索新玩法详解",
+            image: "https://picsum.photos/400/300?random=15",
+            isVideo: true,
+            category: "星际漫游",
+            user: {
+              name: "太空探险家",
+              avatar: "https://i.pravatar.cc/150?img=15",
+            },
+            likes: 823,
+          },
+          {
+            id: 16,
+            title: "《魔法学院》隐藏任务攻略全集",
+            image: "https://picsum.photos/400/420?random=16",
+            isVideo: false,
+            category: "魔法学院",
+            user: {
+              name: "魔法导师",
+              avatar: "https://i.pravatar.cc/150?img=16",
+            },
+            likes: 765,
+          },
+          {
+            id: 17,
+            title: "《荒野求生》极限生存挑战",
+            image: "https://picsum.photos/400/280?random=17",
+            isVideo: true,
+            category: "荒野求生",
+            user: {
+              name: "荒野专家",
+              avatar: "https://i.pravatar.cc/150?img=17",
+            },
+            likes: 654,
+          },
+          {
+            id: 18,
+            title: "《赛车大师》最新赛道抢先体验",
+            image: "https://picsum.photos/400/250?random=18",
+            isVideo: true,
+            category: "赛车大师",
+            user: {
+              name: "赛道传奇",
+              avatar: "https://i.pravatar.cc/150?img=18",
+            },
+            likes: 589,
+          },
+          {
+            id: 19,
+            title: "《模拟城市》城市规划技巧分享",
+            image: "https://picsum.photos/400/360?random=19",
+            isVideo: false,
+            category: "模拟城市",
+            user: {
+              name: "城市规划师",
+              avatar: "https://i.pravatar.cc/150?img=19",
+            },
+            likes: 512,
+          },
+          {
+            id: 20,
+            title: "《怪物猎人》稀有武器收集指南",
+            image: "https://picsum.photos/400/320?random=20",
+            isVideo: false,
+            category: "怪物猎人",
+            user: {
+              name: "猎人大师",
+              avatar: "https://i.pravatar.cc/150?img=20",
+            },
+            likes: 498,
+          },
+        ],
+      };
+
+      // Function to get URL parameters
+      function getUrlParam(param) {
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        return urlParams.get(param);
+      }
+
+      // Get data type from URL parameter
+      const dataType = getUrlParam("type") || "default";
+      const data = mockDataTypes[dataType] || mockDataTypes.default;
+
+      // Function to create feed item HTML
+      function createFeedItem(item) {
+        return `
+                <div class="feed-item">
+                    <div class="feed-image">
+                        <img src="${item.image}" alt="${
+          item.title
+        }" loading="lazy" />
+                        ${
+                          item.isVideo
+                            ? '<div class="video-indicator"><i class="ri-play-fill"></i></div>'
+                            : ""
+                        }
+                    </div>
+                    <div class="feed-content">
+                        <div class="text-sm font-medium line-clamp-2 min-h-[2.5rem]">${
+                          item.title
+                        }</div>
+                        <div class="text-xs text-gray-500 mt-1 min-h-[1rem]">${
+                          item.category || ""
+                        }</div>
+                        <div class="user-info flex justify-between items-center">
+                            <div class="flex items-center">
+                                <img class="user-avatar mr-1" src="${
+                                  item.user.avatar
+                                }" alt="${item.user.name}" />
+                                <span class="text-xs text-gray-600">${
+                                  item.user.name
+                                }</span>
+                            </div>
+                            <div class="like-count">
+                                <i class="ri-thumb-up-line mr-1"></i>
+                                <span>${item.likes}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+      }
+
+      // 改进后的瀑布流渲染函数
+      function renderItems() {
+        const leftColumn = document.getElementById("left-column");
+        const rightColumn = document.getElementById("right-column");
+
+        // 清空现有内容
+        leftColumn.innerHTML = "";
+        rightColumn.innerHTML = "";
+
+        // 记录两列的累计高度
+        let leftHeight = 0;
+        let rightHeight = 0;
+
+        // 为每个项目创建DOM元素并添加到较短的列
+        data.forEach((item, index) => {
+          const feedItem = createFeedItem(item);
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = feedItem;
+          const itemEl = tempDiv.firstElementChild;
+
+          // 为了平滑过渡添加动画延迟
+          const delay = Math.min(index * 0.05, 0.5); // 最大延迟500ms
+          itemEl.style.animationDelay = `${delay}s`;
+
+          // 基于内容长度粗略估算高度
+          const itemHeight =
+            200 + item.title.length * 0.5 + (item.category ? 20 : 0);
+
+          // 添加到高度较小的列，实现真正的瀑布流
+          if (leftHeight <= rightHeight) {
+            leftColumn.appendChild(itemEl);
+            leftHeight += itemHeight;
+          } else {
+            rightColumn.appendChild(itemEl);
+            rightHeight += itemHeight;
+          }
+        });
+      }
+
+      // 添加更多内容的函数
+      function loadMoreItems() {
+        // 显示加载指示器
+        const loadingIndicator = document.getElementById("loading-indicator");
+        loadingIndicator.classList.remove("hidden");
+
+        // 模拟网络请求延迟
+        setTimeout(function () {
+          // 复制原有数据并修改ID以模拟新数据
+          const newItems = data.map((item, index) => {
+            return {
+              ...item,
+              id: item.id + 100, // 确保ID不重复
+              title: `新内容: ${item.title}`, // 添加标记以区分新内容
+              image: `${item.image}&t=${Date.now()}`, // 添加时间戳以获取不同图片
+            };
+          });
+
+          // 记录当前两列的高度
+          const leftColumn = document.getElementById("left-column");
+          const rightColumn = document.getElementById("right-column");
+          let leftHeight = getColumnHeight(leftColumn);
+          let rightHeight = getColumnHeight(rightColumn);
+
+          // 按照瀑布流方式添加新内容
+          newItems.forEach((item, index) => {
+            const feedItem = createFeedItem(item);
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = feedItem;
+            const itemEl = tempDiv.firstElementChild;
+
+            // 不为新加载的内容添加动画延迟
+            itemEl.style.animationDelay = "0s";
+
+            // 估算项目高度
+            const itemHeight =
+              200 + item.title.length * 0.5 + (item.category ? 20 : 0);
+
+            // 添加到高度较小的列
+            if (leftHeight <= rightHeight) {
+              leftColumn.appendChild(itemEl);
+              leftHeight += itemHeight;
+            } else {
+              rightColumn.appendChild(itemEl);
+              rightHeight += itemHeight;
+            }
+          });
+
+          // 隐藏加载指示器
+          loadingIndicator.classList.add("hidden");
+        }, 1500);
+      }
+
+      // 获取列高度的辅助函数
+      function getColumnHeight(column) {
+        if (!column.children.length) return 0;
+        const elements = Array.from(column.children);
+        const totalHeight = elements.reduce(
+          (sum, el) => sum + el.offsetHeight,
+          0
+        );
+        return totalHeight;
+      }
+
+      // 初始化页面
+      document.addEventListener("DOMContentLoaded", function () {
+        renderItems();
+
+        // 模拟下拉刷新功能
+        let startY = 0;
+        let refreshing = false;
+
+        document.addEventListener("touchstart", function (e) {
+          startY = e.touches[0].clientY;
+        });
+
+        document.addEventListener("touchmove", function (e) {
+          const y = e.touches[0].clientY;
+          const scrollTop = document.documentElement.scrollTop;
+
+          // 在页面顶部且向下拉动时
+          if (scrollTop === 0 && y > startY && !refreshing) {
+            const refreshIndicator =
+              document.getElementById("refresh-indicator");
+            refreshIndicator.classList.remove("hidden");
+          }
+        });
+
+        document.addEventListener("touchend", function (e) {
+          const scrollTop = document.documentElement.scrollTop;
+
+          // 在页面顶部触发刷新
+          if (scrollTop === 0 && !refreshing) {
+            const refreshIndicator =
+              document.getElementById("refresh-indicator");
+            refreshIndicator.classList.remove("hidden");
+
+            refreshing = true;
+
+            // 模拟刷新延迟
+            setTimeout(function () {
+              refreshIndicator.classList.add("hidden");
+              refreshing = false;
+
+              // 重新渲染内容
+              renderItems();
+            }, 1500);
+          }
+        });
+
+        // 无限滚动加载
+        window.addEventListener("scroll", function () {
+          if (
+            window.innerHeight + window.scrollY >=
+            document.body.offsetHeight - 300
+          ) {
+            // 当距离底部300px时加载更多内容
+            loadMoreItems();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

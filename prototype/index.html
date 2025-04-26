@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>233乐园 - 原型展示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tdesign-mobile-vue/dist/tdesign.min.css"
+    />
+    <style>
+      body {
+        background-color: #f0f2f5;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+      .device-frame {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        overflow: hidden;
+        border: 14px solid #000;
+        position: relative;
+        background-color: #fff;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+      }
+      .device-notch {
+        position: absolute;
+        width: 160px;
+        height: 34px;
+        background-color: #000;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        border-bottom-left-radius: 24px;
+        border-bottom-right-radius: 24px;
+        z-index: 10;
+      }
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+    </style>
+  </head>
+  <body class="p-8">
+    <h1 class="text-3xl font-bold text-center mb-8">233乐园原型展示</h1>
+
+    <div class="flex flex-wrap justify-center gap-10">
+      <div class="flex flex-col items-center">
+        <h2 class="text-xl font-bold mb-3">发现页 (默认)</h2>
+        <div class="device-frame">
+          <div class="device-notch"></div>
+          <iframe src="discovery.html?type=default" title="发现页"></iframe>
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center">
+        <h2 class="text-xl font-bold mb-3">发现页 (精选内容)</h2>
+        <div class="device-frame">
+          <div class="device-notch"></div>
+          <iframe
+            src="discovery.html?type=featured"
+            title="发现页精选"
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center">
+        <h2 class="text-xl font-bold mb-3">发现页 (游戏内容)</h2>
+        <div class="device-frame">
+          <div class="device-notch"></div>
+          <iframe src="discovery.html?type=games" title="发现页游戏"></iframe>
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center">
+        <h2 class="text-xl font-bold mb-3">帖子详情页</h2>
+        <div class="device-frame">
+          <div class="device-notch"></div>
+          <iframe src="post-detail.html" title="帖子详情"></iframe>
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center">
+        <h2 class="text-xl font-bold mb-3">创建帖子页</h2>
+        <div class="device-frame">
+          <div class="device-notch"></div>
+          <iframe src="create-post.html" title="创建帖子"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center text-gray-500">
+      <p>iPhone 15 Pro 尺寸 (390 × 844 px)</p>
+    </div>
+  </body>
+</html>

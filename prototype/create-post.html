@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>233乐园 - 创建帖子</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tdesign-mobile-vue/dist/tdesign.min.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background-color: white;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow-x: hidden;
+      }
+
+      .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: white;
+        padding: 12px 16px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .media-preview {
+        display: flex;
+        overflow-x: auto;
+        gap: 8px;
+        padding: 16px;
+        scrollbar-width: none; /* Firefox */
+      }
+
+      .media-preview::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+      }
+
+      .media-item {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
+      }
+
+      .media-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .media-delete {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 20px;
+        height: 20px;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      .add-media {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        border: 1px dashed #ddd;
+        background-color: #f9f9f9;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 12px;
+        flex-shrink: 0;
+      }
+
+      .post-toolbar {
+        display: flex;
+        border-top: 1px solid #eee;
+        padding: 12px 16px;
+      }
+
+      .toolbar-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-right: 24px;
+        color: #666;
+        font-size: 12px;
+      }
+
+      .toolbar-icon {
+        font-size: 20px;
+        margin-bottom: 4px;
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0 16px 16px;
+        gap: 8px;
+      }
+
+      .tag-item {
+        padding: 4px 12px;
+        background-color: #f0f0f0;
+        border-radius: 16px;
+        font-size: 12px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .publish-button {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        height: 40px;
+        padding: 0 20px;
+        background-color: #ff4c3b;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(255, 76, 59, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header -->
+      <div class="app-header">
+        <div class="flex items-center">
+          <i class="ri-arrow-left-line text-xl mr-4"></i>
+          <div class="text-base font-medium">创建帖子</div>
+        </div>
+        <div class="text-blue-500 font-medium">草稿</div>
+      </div>
+
+      <!-- Content Editor -->
+      <div class="content-editor px-4 py-3">
+        <textarea
+          class="w-full text-base outline-none resize-none"
+          placeholder="分享你的想法..."
+          rows="6"
+        ></textarea>
+      </div>
+
+      <!-- Media Preview -->
+      <div class="media-preview">
+        <div class="media-item">
+          <img
+            src="https://picsum.photos/200/200?random=1"
+            alt="Media preview"
+          />
+          <div class="media-delete">
+            <i class="ri-close-line"></i>
+          </div>
+        </div>
+        <div class="media-item">
+          <img
+            src="https://picsum.photos/200/200?random=2"
+            alt="Media preview"
+          />
+          <div class="media-delete">
+            <i class="ri-close-line"></i>
+          </div>
+        </div>
+        <div class="add-media">
+          <i class="ri-add-line text-xl mb-1"></i>
+          <span>添加</span>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="px-4 py-2 text-base font-medium">话题标签</div>
+      <div class="tag-list">
+        <div class="tag-item">
+          <span>游戏攻略</span>
+          <i class="ri-close-line"></i>
+        </div>
+        <div class="tag-item">
+          <span>三角洲行动</span>
+          <i class="ri-close-line"></i>
+        </div>
+        <div class="tag-item">
+          <span>+ 添加标签</span>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div
+        class="location-selector px-4 py-2 flex justify-between items-center border-t border-gray-100"
+      >
+        <div class="flex items-center">
+          <i class="ri-map-pin-line text-xl mr-2 text-gray-400"></i>
+          <span class="text-gray-600">添加位置</span>
+        </div>
+        <i class="ri-arrow-right-s-line text-gray-400"></i>
+      </div>
+
+      <!-- Who can see -->
+      <div
+        class="visibility-selector px-4 py-2 flex justify-between items-center border-t border-gray-100"
+      >
+        <div class="flex items-center">
+          <i class="ri-eye-line text-xl mr-2 text-gray-400"></i>
+          <span class="text-gray-600">所有人可见</span>
+        </div>
+        <i class="ri-arrow-right-s-line text-gray-400"></i>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="post-toolbar mt-4">
+        <div class="toolbar-item">
+          <i class="toolbar-icon ri-image-line"></i>
+          <span>图片</span>
+        </div>
+        <div class="toolbar-item">
+          <i class="toolbar-icon ri-vidicon-line"></i>
+          <span>视频</span>
+        </div>
+        <div class="toolbar-item">
+          <i class="toolbar-icon ri-hashtag"></i>
+          <span>话题</span>
+        </div>
+        <div class="toolbar-item">
+          <i class="toolbar-icon ri-at-line"></i>
+          <span>好友</span>
+        </div>
+        <div class="toolbar-item">
+          <i class="toolbar-icon ri-emotion-line"></i>
+          <span>表情</span>
+        </div>
+      </div>
+
+      <!-- Publish Button -->
+      <div class="publish-button">发布</div>
+    </div>
+  </body>
+</html>
