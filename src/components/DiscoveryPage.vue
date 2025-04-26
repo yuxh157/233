@@ -40,6 +40,9 @@ function handleTabChange(tab) {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch; /* 增强iOS滚动体验 */
+  position: relative; /* 确保子元素可以使用绝对定位 */
+  touch-action: pan-y; /* 优化触摸体验 */
+  overscroll-behavior-y: contain; /* 防止过度滚动 */
 }
 
 .bottom-spacer {

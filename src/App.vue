@@ -1,6 +1,4 @@
-<script setup>
-// App.vue使用router-view来渲染路由组件
-</script>
+<script setup></script>
 
 <template>
   <div class="app-wrapper">

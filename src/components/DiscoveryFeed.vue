@@ -409,11 +409,23 @@ function setupPullToRefresh() {
   // 等待DOM更新后获取正确的元素
   setTimeout(() => {
     scrollerElement = document.querySelector(".content-area");
-    if (!scrollerElement) return;
+    if (!scrollerElement) {
+      console.log("Could not find .content-area element for pull-to-refresh");
+      scrollerElement = document.querySelector(".app");
+      if (!scrollerElement) {
+        console.log("Could not find .app element either, trying document");
+        scrollerElement = document.documentElement;
+      }
+    }
 
     window.addEventListener("touchstart", handleTouchStart, { passive: false });
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", handleTouchEnd);
+
+    console.log(
+      "Pull-to-refresh initialized with scroller element:",
+      scrollerElement
+    );
   }, 100);
 }
 
@@ -422,8 +434,10 @@ function handleTouchStart(e) {
   const scrollTop = scrollerElement ? scrollerElement.scrollTop : 0;
 
   // 只有在顶部时才启用下拉刷新
-  if (scrollTop === 0) {
+  if (scrollTop <= 5) {
+    // 给一些容差
     isPulling.value = true;
+    console.log("Pull started at top position");
   }
 }
 
@@ -437,6 +451,7 @@ function handleTouchMove(e) {
   if (diff > 0) {
     // 添加阻尼效果，使拖动感觉更自然
     pullDistance.value = Math.min(80, diff * 0.5);
+    console.log("Pulling, distance:", pullDistance.value);
 
     // 阻止默认滚动行为，使下拉体验更平滑
     e.preventDefault();

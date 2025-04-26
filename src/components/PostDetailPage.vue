@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
+import { useRoute } from "vue-router";
 
 // 接收从路由传递的帖子ID
 const props = defineProps({
@@ -9,87 +10,257 @@ const props = defineProps({
   },
 });
 
+const route = useRoute();
+
+// 随机内容数据库
+const titlePrefixes = [
+  "《星际探险》",
+  "《荒野求生》",
+  "《王者对决》",
+  "《三角洲行动》",
+  "《模拟城市》",
+  "《赛车大师》",
+  "《魔法学院》",
+  "《怪物猎人》",
+  "【新手攻略】",
+  "【高级技巧】",
+  "【版本前瞻】",
+  "【隐藏彩蛋】",
+  "盘点最强",
+  "震惊！这个",
+  "新版本里的",
+  "玩家必知",
+];
+
+const titleSuffixes = [
+  "全面解析",
+  "实用技巧大全",
+  "你不知道的秘密",
+  "最强玩法攻略",
+  "新手入门指南",
+  "玩家必备知识",
+  "内部消息提前看",
+  "隐藏关卡详解",
+  "最佳装备搭配",
+  "终极战术指南",
+  "竞技场制胜法则",
+  "完美通关方法",
+];
+
+const descriptionTemplates = [
+  "这款游戏的最新版本增加了全新的地图和模式，今天给大家带来全面的攻略，让你快速上手成为高手！",
+  "很多玩家都不知道的隐藏技巧，掌握这些技巧可以让你的游戏体验提升一个档次，一起来看看吧！",
+  "作为一个有着多年经验的资深玩家，我来分享一些绝对实用的小窍门，帮助你在这个游戏中取得更好的成绩。",
+  "新赛季已经开始，这篇攻略将帮助你了解最新的游戏平衡性调整和最佳的策略选择，让你在排位赛中脱颖而出！",
+  "这些鲜为人知的游戏彩蛋和隐藏关卡，开发者藏得很深，但今天我会一一为你揭秘，带你体验不一样的游戏乐趣。",
+];
+
+const tagCategories = {
+  strategy: ["战略", "策略", "战术", "布局", "规划"],
+  action: ["动作", "格斗", "技巧", "连招", "反应"],
+  rpg: ["角色", "属性", "技能树", "装备", "升级"],
+  simulation: ["模拟", "建造", "经营", "管理", "发展"],
+  adventure: ["冒险", "探索", "收集", "解谜", "发现"],
+};
+
+const gameCategories = [
+  "星际探险",
+  "荒野求生",
+  "王者对决",
+  "三角洲行动",
+  "模拟城市",
+  "赛车大师",
+  "魔法学院",
+  "怪物猎人",
+  "我的世界",
+  "决胜荣耀",
+];
+
+const timeAgo = [
+  "刚刚",
+  "5分钟前",
+  "10分钟前",
+  "半小时前",
+  "1小时前",
+  "2小时前",
+  "今天",
+  "昨天",
+];
+
+const userNames = [
+  "游戏达人",
+  "电竞小王子",
+  "资深玩家",
+  "战术大师",
+  "攻略专家",
+  "游戏解说员",
+  "顶尖玩家",
+  "游戏探险家",
+  "数据分析师",
+  "游戏博主",
+];
+
+// 随机生成内容函数
+function getRandomElement(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+function getRandomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function generateRandomTitle() {
+  return getRandomElement(titlePrefixes) + getRandomElement(titleSuffixes);
+}
+
+function generateRandomDescription() {
+  return getRandomElement(descriptionTemplates);
+}
+
+function generateRandomTags() {
+  const categories = Object.keys(tagCategories);
+  const selectedCategories = [];
+
+  // 随机选择2-3个类别
+  const numCategories = getRandomNumber(2, 3);
+  while (selectedCategories.length < numCategories) {
+    const category = getRandomElement(categories);
+    if (!selectedCategories.includes(category)) {
+      selectedCategories.push(category);
+    }
+  }
+
+  // 从每个选中的类别中选择一个标签
+  const tags = [];
+  selectedCategories.forEach((category) => {
+    tags.push(getRandomElement(tagCategories[category]));
+  });
+
+  // 添加游戏类别标签
+  tags.push(getRandomElement(gameCategories));
+
+  return tags;
+}
+
+function generateRandomComments(count) {
+  const comments = [];
+  for (let i = 0; i < count; i++) {
+    comments.push({
+      id: i + 1,
+      user: {
+        name: getRandomElement(userNames),
+        avatar: `https://i.pravatar.cc/150?img=${getRandomNumber(1, 70)}`,
+      },
+      content: getRandomElement(descriptionTemplates),
+      time: getRandomElement(timeAgo),
+      likes: getRandomNumber(0, 500),
+    });
+  }
+  return comments;
+}
+
 // 模拟帖子详情数据
 const post = ref({
   id: props.postId,
-  title: "三角洲行动: 全面战场趣味性升级，夺旗，攻防合集，来玩",
-  description:
-    "最新版本的三角洲行动增加了全新的地图和游戏模式，今天给大家带来全面的攻略，让你快速上手新玩法，成为战场之王！",
-  image: "https://picsum.photos/400/320?random=5",
+  title: "",
+  description: "",
+  image: "",
   videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-  isVideo: true,
-  category: "三角洲行动",
-  createdAt: "2小时前",
-  tags: ["游戏攻略", "三角洲行动", "FPS", "战术竞技"],
-  likes: 644,
-  comments: 128,
+  isVideo: Math.random() > 0.5, // 50%的概率是视频
+  category: "",
+  createdAt: "",
+  tags: [],
+  likes: 0,
+  comments: 0,
   user: {
-    name: "能猫游戏攻略",
-    avatar: "https://i.pravatar.cc/150?img=5",
+    name: "",
+    avatar: "",
     isFollowing: false,
   },
 });
 
 // 评论数据
-const comments = ref([
-  {
-    id: 1,
-    user: {
-      name: "战术大师",
-      avatar: "https://i.pravatar.cc/150?img=10",
-    },
-    content:
-      "非常详细的攻略，特别是夺旗模式的战术分析很有帮助，我已经用这套战术连赢好几局了，感谢分享！",
-    time: "1小时前",
-    likes: 42,
-  },
-  {
-    id: 2,
-    user: {
-      name: "游戏发烧友",
-      avatar: "https://i.pravatar.cc/150?img=11",
-    },
-    content:
-      "请问新地图的隐藏通道在哪里？我找了好久都没发现，视频里似乎有提到但没看清楚",
-    time: "52分钟前",
-    likes: 15,
-  },
-  {
-    id: 3,
-    user: {
-      name: "能猫游戏攻略",
-      avatar: "https://i.pravatar.cc/150?img=5",
-    },
-    content:
-      "@游戏发烧友 隐藏通道在中央建筑物的西北角，那里有一个可以破坏的墙壁，需要使用炸药或者特殊的角色技能才能打开",
-    time: "45分钟前",
-    likes: 28,
-  },
-  {
-    id: 4,
-    user: {
-      name: "新手玩家",
-      avatar: "https://i.pravatar.cc/150?img=12",
-    },
-    content:
-      "非常感谢这个攻略，作为一个刚入坑的新手，这些基础知识对我帮助很大，期待更多这样的教程！",
-    time: "30分钟前",
-    likes: 8,
-  },
-]);
+const comments = ref([]);
 
 // 评论输入
 const commentText = ref("");
 
-// 获取帖子详情（实际项目中应从API获取）
+// 下拉刷新相关状态
+const refreshing = ref(false);
+const pullDistance = ref(0);
+const isPulling = ref(false);
+const refreshRotation = ref(0);
+let startY = 0;
+let scrollerElement = null;
+let refreshAnimationFrame = null;
+
+// 计算下拉指示器的状态
+const pullStatusText = computed(() => {
+  if (refreshing.value) return "刷新中...";
+  if (pullDistance.value > 50) return "释放立即刷新";
+  return "下拉刷新";
+});
+
+// 计算下拉指示器的颜色
+const pullStatusColor = computed(() => {
+  if (refreshing.value) return "#0052d9";
+  if (pullDistance.value > 50) return "#0052d9";
+  return "#999";
+});
+
+// 随机生成帖子详情
+function generateRandomPostDetail() {
+  const randomId = props.postId;
+  const isVideoPost = Math.random() > 0.5;
+  const randomCategory = getRandomElement(gameCategories);
+  const randomTags = generateRandomTags();
+  const commentCount = getRandomNumber(3, 8);
+
+  post.value = {
+    id: randomId,
+    title: generateRandomTitle(),
+    description: generateRandomDescription(),
+    image: `https://picsum.photos/800/600?random=${randomId}`,
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+    isVideo: isVideoPost,
+    category: randomCategory,
+    createdAt: getRandomElement(timeAgo),
+    tags: randomTags,
+    likes: getRandomNumber(10, 2000),
+    comments: commentCount,
+    user: {
+      name: getRandomElement(userNames),
+      avatar: `https://i.pravatar.cc/150?img=${getRandomNumber(1, 70)}`,
+      isFollowing: Math.random() > 0.7, // 30%的概率已关注
+    },
+  };
+
+  comments.value = generateRandomComments(commentCount);
+}
+
+// 获取帖子详情
 const fetchPostDetail = () => {
-  // 这里应当根据props.postId从API获取帖子详情
   console.log(`Fetching post with ID: ${props.postId}`);
-  // 这里使用的是模拟数据，实际开发时应当替换为API调用
+  generateRandomPostDetail();
 };
 
 // 页面加载时获取数据
-fetchPostDetail();
+onMounted(() => {
+  fetchPostDetail();
+  setupPullToRefresh();
+});
+
+onUnmounted(() => {
+  if (scrollerElement) {
+    window.removeEventListener("touchstart", handleTouchStart);
+    window.removeEventListener("touchmove", handleTouchMove);
+    window.removeEventListener("touchend", handleTouchEnd);
+  }
+
+  if (refreshAnimationFrame) {
+    cancelAnimationFrame(refreshAnimationFrame);
+  }
+});
 
 // 返回上一页
 const goBack = () => {
@@ -119,10 +290,154 @@ const submitComment = () => {
 
   commentText.value = "";
 };
+
+// 设置下拉刷新
+function setupPullToRefresh() {
+  // 等待DOM更新后获取正确的元素
+  setTimeout(() => {
+    scrollerElement = document.querySelector(".post-detail-container");
+    if (!scrollerElement) {
+      console.log(
+        "Could not find .post-detail-container element for pull-to-refresh"
+      );
+      return;
+    }
+
+    console.log(
+      "PostDetailPage: Pull-to-refresh initialized with scroller element:",
+      scrollerElement
+    );
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd);
+  }, 100);
+}
+
+function handleTouchStart(e) {
+  startY = e.touches[0].clientY;
+  const scrollTop = scrollerElement ? scrollerElement.scrollTop : 0;
+
+  console.log("PostDetailPage: Touch start, scrollTop:", scrollTop);
+
+  // 只有在顶部时才启用下拉刷新
+  if (scrollTop <= 5) {
+    // 给一些容差
+    isPulling.value = true;
+    console.log("PostDetailPage: Pull started at top position");
+  }
+}
+
+function handleTouchMove(e) {
+  if (!isPulling.value) return;
+
+  const currentY = e.touches[0].clientY;
+  const diff = currentY - startY;
+
+  // 下拉时才触发刷新
+  if (diff > 0) {
+    // 添加阻尼效果，使拖动感觉更自然
+    pullDistance.value = Math.min(80, diff * 0.5);
+    console.log("PostDetailPage: Pulling, distance:", pullDistance.value);
+
+    // 阻止默认滚动行为，使下拉体验更平滑
+    e.preventDefault();
+  }
+}
+
+function handleTouchEnd() {
+  if (!isPulling.value) return;
+
+  // 如果拉动距离足够，触发刷新
+  if (pullDistance.value > 50) {
+    refreshPost();
+  } else {
+    // 否则复位，添加过渡动画
+    const startValue = pullDistance.value;
+    const startTime = Date.now();
+    const duration = 300; // 300ms
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // 使用缓动函数，使回弹更自然
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      pullDistance.value = startValue * (1 - easedProgress);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        pullDistance.value = 0;
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }
+
+  isPulling.value = false;
+}
+
+function startRefreshAnimation() {
+  const animate = () => {
+    refreshRotation.value = (refreshRotation.value + 3) % 360;
+    refreshAnimationFrame = requestAnimationFrame(animate);
+  };
+  refreshAnimationFrame = requestAnimationFrame(animate);
+}
+
+function stopRefreshAnimation() {
+  if (refreshAnimationFrame) {
+    cancelAnimationFrame(refreshAnimationFrame);
+    refreshAnimationFrame = null;
+  }
+}
+
+function refreshPost() {
+  if (refreshing.value) return;
+
+  refreshing.value = true;
+  startRefreshAnimation();
+  console.log("PostDetailPage: Refresh started");
+
+  // 模拟网络请求延迟
+  setTimeout(() => {
+    fetchPostDetail(); // 重新获取帖子详情
+    refreshing.value = false;
+    pullDistance.value = 0;
+    stopRefreshAnimation();
+    console.log("PostDetailPage: Refresh completed");
+  }, 1500);
+}
 </script>
 
 <template>
   <div class="post-detail-container">
+    <!-- Pull to refresh indicator -->
+    <div
+      class="refresh-container"
+      :style="{
+        height: `${pullDistance}px`,
+        opacity: pullDistance / 80,
+        color: pullStatusColor,
+      }"
+      v-show="pullDistance > 0 || refreshing"
+    >
+      <div class="refresh-content">
+        <div class="refresh-icon-wrapper">
+          <i
+            class="ri-refresh-line"
+            :style="{
+              transform: refreshing
+                ? `rotate(${refreshRotation}deg)`
+                : `rotate(${pullDistance * 2}deg)`,
+            }"
+          ></i>
+        </div>
+        <span class="refresh-text">{{ pullStatusText }}</span>
+      </div>
+    </div>
+
     <!-- Header -->
     <div class="app-header">
       <div class="header-left">
@@ -236,7 +551,7 @@ const submitComment = () => {
     </div>
 
     <!-- Comment Input -->
-    <div class="comment-input-area">
+    <!-- <div class="comment-input-area">
       <input
         type="text"
         class="comment-input"
@@ -248,7 +563,7 @@ const submitComment = () => {
         <i class="ri-emotion-line comment-action-icon"></i>
         <i class="ri-image-line comment-action-icon"></i>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -257,9 +572,50 @@ const submitComment = () => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   background-color: #f5f5f5;
   padding-bottom: 60px; /* 为底部评论框留出空间 */
+  position: relative; /* 确保子元素可以使用绝对定位 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* 增强iOS滚动体验 */
+  touch-action: pan-y; /* 优化触摸体验 */
+  overscroll-behavior-y: contain; /* 防止过度滚动 */
+}
+
+/* Pull to refresh styles */
+.refresh-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  transition: color 0.3s ease;
+  font-size: 13px;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
+  position: relative;
+  z-index: 200;
+}
+
+.refresh-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.refresh-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.refresh-text {
+  font-size: 13px;
+  transition: color 0.3s ease;
 }
 
 .app-header {

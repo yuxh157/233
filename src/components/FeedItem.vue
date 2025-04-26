@@ -12,6 +12,7 @@ const router = useRouter();
 
 // 跳转到帖子详情页
 function navigateToDetail() {
+  // 通过路由跳转到文章详情页，并传递文章ID参数
   router.push({
     name: "PostDetail",
     params: { postId: props.item.id },

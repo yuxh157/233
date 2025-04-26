@@ -11,6 +11,10 @@ import PostDetailPage from "./components/PostDetailPage.vue";
 const routes = [
   { path: "/", component: DiscoveryPage },
   {
+    path: "/discover",
+    component: DiscoveryPage,
+  },
+  {
     path: "/detail/:postId",
     name: "PostDetail",
     component: PostDetailPage,

@@ -31,9 +31,9 @@ defineProps({
     </div>
   </div>
 
-  <div class="create-post">
+  <!-- <div class="create-post">
     <i class="ri-add-line text-2xl"></i>
-  </div>
+  </div> -->
 </template>
 
 <style scoped>
